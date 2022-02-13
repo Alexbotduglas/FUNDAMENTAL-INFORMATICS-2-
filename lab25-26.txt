@@ -1,0 +1,361 @@
+dyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ cat makefile.sh
+#makefile
+out: main.o queue.o;gcc -o out main.o queue.o
+main.o: main.c queue.h; gcc -c main.c
+queue.o: queue.c queue.h; gcc -c queue.c
+clean: ;rm -rf *.o out
+dyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ cat queue.h
+#ifndef _QUEUE_H_
+#define _QUEUE_H_
+#define POOL_SIZE 100
+
+#include <stdbool.h>
+
+typedef struct Data
+{
+        int key;
+        char value[50];
+}Data;
+typedef struct Queue
+{
+        int first;
+        int size;
+        Data data[POOL_SIZE];
+}Queue;
+
+void Create(Queue* Q);
+bool Empty(Queue* Q);
+int Size(Queue* Q);
+bool Push(Queue* Q, Data data);
+bool Pop(Queue* Q);
+Data Top(Queue* Q);
+void Destroy(Queue* Q);
+void Print(Queue* Q);
+void Swap(Queue* Q, int size);
+void Sort(Queue* Q, int size);
+int menu();
+#endifdyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ cat queue.c
+//2.очередь
+//4.процедура - поиск в очереди двух элементов идущих подряд первый из которых больше
+//второго. если такие элементы найдены их перстановка
+//метод-сортивка методом пузырька
+#define _CRT_SECURE_NO_WARNINGS
+#include "queue.h"
+#include <stdio.h>
+#include<stdbool.h>
+#include<locale.h>
+
+void Create(Queue* Q)
+{
+        Q->first = 0;
+        Q->size = 0;
+}
+bool Empty(Queue* Q)
+{
+        return Q->size == 0;
+}
+int Size(Queue* Q)
+{
+        return Q->size;
+}
+bool Push(Queue* Q, Data data)
+{
+        if (Q->size == POOL_SIZE)
+                return false;
+        Q->data[(Q->first + Q->size++) % POOL_SIZE] = data;
+        return true;
+}
+bool Pop(Queue* Q)
+{
+        if (!Q->size)
+                return false;
+        Q->first++;
+        Q->first %= POOL_SIZE;
+        Q->size--;
+        return true;
+}
+Data Top(Queue* Q)
+{
+        if (Q->size)
+                return Q->data[Q->first];
+}
+void Destroy(Queue* Q)
+{
+        Q->size = 0;
+}
+void Print(Queue* Q)
+{
+        int i,k;
+        for (i = Q->first,k=0; k < Q->size;i++, i %= POOL_SIZE, k++)
+                printf("%d[%s] ", Q->data[i].key, Q->data[i].value);
+        putchar('\n');
+}
+void Swap(Queue* Q, int size)
+{
+        Data tmp;
+        int k;
+        Queue q;
+        Create(&q);
+        tmp = Top(Q);
+        Pop(Q);
+        for (k = 0; k < size-1; k++)
+        {
+                if (tmp.key > Top(Q).key)
+                {
+                        Push(&q, Top(Q));
+                        Pop(Q);
+
+                }
+                else
+                {
+                        Push(&q, tmp);
+                        tmp = Top(Q);
+                        Pop(Q);
+                }
+        }
+        Push(&q, tmp);
+        while (Size(Q) != 0)
+        {
+                Push(&q, Top(Q));
+                Pop(Q);
+        }
+        *Q = q;
+        Destroy(&q);
+}
+void Sort(Queue* Q, int size)
+{
+        if (size != 0)
+        {
+                Swap(Q,size);
+                size--;
+                Sort(Q,size);
+        }
+        else
+                return;
+}
+int menu()
+{
+        int k;
+        printf("0:Закончить работу\n");
+        printf("1:Вставить элемент\n");
+        printf("2:Печать очереди\n");
+        printf("3:Удалить элемент\n");
+        printf("4:Сортировка\n");
+        printf("5:Длина\n");
+        printf(":>");
+        scanf("%d", &k);
+        while (k < 0 || k>5)
+        {
+                printf("Ошибка. Вы ввели номер действия, которого не существует\n"
+                        "Попробуйте ввести снова\n:>");
+                scanf("%d", &k);
+        }
+        return k;
+}
+dyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ cat main.c
+#define _CRT_SECURE_NO_WARNINGS
+#include "queue.h"
+#include <stdio.h>
+#include<stdbool.h>
+#include<locale.h>
+int main()
+{
+        setlocale(LC_ALL, "Russian");
+        Queue Q;
+        Data data;
+        Create(&Q);
+        while (1)
+        {
+                switch (menu())
+                {
+                case 0:return 0;
+                case 1:
+                        if (Size(&Q) == POOL_SIZE)
+                                puts("Очередь заполнена");
+                        else
+                        {
+                                puts("Введите ключ и значение: ");
+                                scanf("%d %s", &data.key, data.value);
+                                Push(&Q, data);
+                        }break;
+                case 2:
+                        if (Empty(&Q))
+                                puts("Очередь пустая");
+                        else
+                                Print(&Q);
+                        break;
+                case 3:
+                        if (Empty(&Q))
+                                puts("Очередь пустая");
+                        else
+                                Pop(&Q);
+                        break;
+                case 4:
+                        if (Empty(&Q))
+                                puts("Очередь пустая");
+                        else
+                                Sort(&Q,Size(&Q));
+                        break;
+                case 5:
+                        printf("Длина очереди:%d\n", Size(&Q)); break;
+                }
+        }
+        return 0;
+}
+dyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ make -f makefile.sh
+gcc -c main.c
+gcc -c queue.c
+gcc -o out main.o queue.o
+dyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ ls *.o out
+main.o  out  queue.o
+dyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ ./out
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>1
+Введите ключ и значение:
+8 q
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>1
+Введите ключ и значение:
+7 qw
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>1
+Введите ключ и значение:
+10 bbv
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>1
+Введите ключ и значение:
+-6 yds
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>1
+Введите ключ и значение:
+8 ds
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>2
+8[q] 7[qw] 10[bbv] -6[yds] 8[ds]
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>5
+Длина очереди:5
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>4
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>2
+-6[yds] 7[qw] 8[q] 8[ds] 10[bbv]
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>3
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>3
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>2
+8[q] 8[ds] 10[bbv]
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>5
+Длина очереди:3
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>1
+Введите ключ и значение:
+0 nyyd
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>2
+8[q] 8[ds] 10[bbv] 0[nyyd]
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>4
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>2
+0[nyyd] 8[q] 8[ds] 10[bbv]
+0:Закончить работу
+1:Вставить элемент
+2:Печать очереди
+3:Удалить элемент
+4:Сортировка
+5:Длина
+:>0
+dyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ make clean
+rm -rf *.o o
+dyusekeev@alisher:/mnt/c/Users/Алишер/Desktop$ ls *.o out
+ls: cannot access '*.o': No such file or directory
+ls: cannot access 'out': No such file or directory
