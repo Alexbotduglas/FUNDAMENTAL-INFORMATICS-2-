@@ -1,0 +1,101 @@
+#include "stdafx.h"
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node
+{
+	int info;
+	int count;
+	struct node *l, *r;
+
+}*nodeptr;
+
+nodeptr push(int a, nodeptr t, nodeptr p)
+{
+	if (t == NULL)
+	{
+		t = (nodeptr)malloc(sizeof(struct node));
+		t->info = a;
+		t->count = 0;
+		if (p != NULL)
+		{
+			p->count++;
+			//printf("parent count = %d\n", p->count);
+		}
+		t->l = t->r = NULL;
+		return t;
+	}
+	if (a > t->info) t->r = push(a, t->r, t);
+	else t->l = push(a, t->l, t);
+	return t;
+
+}
+
+void print(nodeptr t, int u, int &count)
+{
+	if (t == NULL) return;
+	else
+	{
+		int i;
+		print(t->l, ++u, count);
+		for (i = 0; i < u; ++i) printf("|");
+		printf("%d - %d\n", t->info, t->count);
+		if (t->info == t->count) count++;
+		u--;
+	}
+	print(t->r, ++u, count);
+}
+void freeTree(nodeptr t) {
+	if (t == NULL)return;
+	freeTree(t->l);
+	freeTree(t->r);
+	free(t);
+}
+
+int main(int argc, char** argv)
+{
+	setlocale(0, "rus");
+	nodeptr tree = NULL;
+	nodeptr nulptr = NULL;
+	int i, n, s, count;
+	count = 0;
+	printf("введите количество элементов ");
+	scanf_s("%d", &n);
+
+	for (i = 0; i < n; ++i)
+	{
+		printf("введите число ");
+		scanf_s("%d", &s);
+		tree = push(s, tree, nulptr);
+
+	}
+	printf("ваше дерево\n");
+	print(tree, 0, count);
+	freeTree(tree);
+	printf("число вершин=%d\n", count);
+	system("pause");
+	return 0;
+}
+
+введите количество элементов 9
+введите число 8
+введите число 2
+введите число 10
+введите число 14
+введите число 6
+введите число 1
+введите число 4
+введите число 0
+введите число 7
+ваше дерево
+||||0 - 0
+|||1 - 1
+||2 - 2
+||||4 - 0
+|||6 - 2
+||||7 - 0
+|8 - 2
+||10 - 1
+|||14 - 0
+число вершин=3
